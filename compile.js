@@ -11,4 +11,4 @@ contract = fs.readFileSync(contractFile, 'utf-8')
 console.log(contract)
 
 module.exports = solc.compile(contract, 1).contracts[':Cab']
-// console.log(solc.compile(contract, 1))
+console.log(solc.compile(contract, 1))

@@ -15,18 +15,16 @@ contract Cab {
     
     // nitin
     function userprofile() public {
-        users.add(msg.sender);
+        users.push(msg.sender);
     }
 
     // ankush
     function driverprofile() public {
-        drivers.add(msg.sender);
+        drivers.push(msg.sender);
     }
 
     //ayush
-    function userrequest() public payable returns (address) {
-
-        restricted();
+    function userrequest() public payable restricted returns (address) {
 
         address user = msg.sender;
         bool found = false;
@@ -40,16 +38,12 @@ contract Cab {
             }
         }
         
-        if(found)
-        {
-            showDrivers();
-            address driver = givedriver();
-            driver.transfer(msg.value);
-        }
-        else
-        {
+        require(found) ;
+        
+        address driver = givedriver();
+        driver.transfer(msg.value);
 
-        }
+        return driver;
         
     }
     
@@ -58,17 +52,13 @@ contract Cab {
     }
     
     // arghyadeep
-    function givedriver() public returns(address){
-
-        if(drivers.length > 0){
-
-            uint index = random()%drivers.length;
-            
-            return drivers[index];
-        }
-
-        return '0';
+    function givedriver() public view returns(address){
+        require(drivers.length >= 1) ;
+        return drivers[0];
+        // uint index = random()%drivers.length;
         
+        // return drivers[index];
+
     }
 
     //amit

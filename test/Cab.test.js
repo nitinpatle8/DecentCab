@@ -65,24 +65,76 @@ describe("Cab Contract", () => {
 
   it("user request check", async () => {
 
+    await cab.methods.userprofile().send({
+      from: accounts[0]
+    });
+
+    let users = await cab.methods.showUsers().call({
+      from: accounts[0]
+    });
+
+    assert.equal(users.length, 1);
+    assert.equal(users[0], accounts[0]);
+
+    await cab.methods.driverprofile().send({
+      from: accounts[0]
+    });
+
+    let drivers = await cab.methods.showDrivers().call({
+      from: accounts[0]
+    });
+
+    assert.equal(drivers.length, 1);
+    assert.equal(drivers[0], accounts[0]);
+
     let driver = await cab.methods.userrequest().send({
       from: accounts[0],
       value: web3.utils.toWei("1", "ether")
     });
 
-    assert(driver > int('0'));
+    assert(driver.from == parseInt(accounts[0])); 
   });
 
   it('check list of users', async () => {
 
-    const users = await cab.methods.showUsers().call();
+    await cab.methods.userprofile().send({
+      from: accounts[0]
+    });
+
+    let users = await cab.methods.showUsers().call({
+      from: accounts[0]
+    });
+
+    assert.equal(users.length, 1);
+    assert.equal(users[0], accounts[0]);
+
+    await cab.methods.driverprofile().send({
+      from: accounts[0]
+    });
+
+    const drivers = await cab.methods.showDrivers().call({
+      from: accounts[0]
+    });
+
+    assert.equal(drivers.length, 1);
+    assert.equal(drivers[0], accounts[0]);
+
+    users = await cab.methods.showUsers().call();
     assert(users.length > 0);
 
   })
 
   it('check list of drivers', async () => {
-    const acc = await cab.methods.drivers().call();
-    assert.notEqual(acc, '0');
+
+    await cab.methods.driverprofile().send({
+      from: accounts[0]
+    });
+
+    const drivers = await cab.methods.showDrivers().call({
+      from: accounts[0]
+    });
+
+    assert(drivers.length == 1);
   });
 
 

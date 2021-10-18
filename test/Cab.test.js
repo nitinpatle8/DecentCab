@@ -92,6 +92,8 @@ describe("Cab Contract", () => {
       value: web3.utils.toWei("1", "ether")
     });
 
+    console.log(driver);
+
     assert(driver.from == parseInt(accounts[0])); 
   });
 

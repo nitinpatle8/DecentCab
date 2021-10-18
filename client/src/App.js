@@ -1,79 +1,116 @@
-import React from 'react'
-import web3 from './web3'
-import cab from './cab'
+import React from "react";
+import web3 from "./web3";
+import cab from "./cab";
 
 class App extends React.Component {
   state = {
-    user: '',
-    drivers: [],
-    balance: '',
-    value: '',
-    message: '',
-    driver: ''
+    customer : '' ,
+    startLocation : '' ,
+    endLocation : '' ,
+    status : '' ,    
+    driver : '' ,
+    value : 0 ,
+    driverRequests : [],
+    accounts : [],
+    driverRequestsCount : 0,
+    message : ''
+    
   }
 
-  async componentDidMount() {
+  async componentDidMount()
+  {
+    
+    
+    const customer = await cab.methods.customer().call();
+    const startLocation = await cab.methods.startLocation().call() ;
+    const endLocation = await cab.methods.endLocation().call() ;
+    const status = await cab.methods.status().call() ;
+    const driver = await cab.methods.driver().call();
+    const driverRequestsCount = await cab.methods.giveDriverRequestsCount().call() ;
+    
+    let driverRequests = [] ;
+    for(let i = 0 ; i < driverRequestsCount ; i++)
+    {
+      let req = await cab.methods.driverRequests(i).call() ;
+     let price = req[1] ;
+    //  let price = req[1] ;
 
-    const accounts = await web3.eth.getAccounts()
+     driverRequests.push(price) ;
+    }
+    const accounts = await web3.eth.getAccounts();
+    
+    // const value = await web3.ethereum.getBalance(cab.options.address);
+    this.setState({customer : customer,
+      startLocation : startLocation,
+      endLocation : endLocation,
+      status : status,
+      driver : driver,
+      driverRequestsCount : driverRequestsCount,
+      accounts : accounts,
+      driverRequests : driverRequests
+   }) ;
 
-    await cab.methods.userprofile().send({ from: accounts[0] })
-
-    const drivers = await cab.methods.showDrivers().call();
-
-    const balance = await web3.eth.getBalance(cab.options.address)
-
-    this.setState({ user: accounts[0], drivers: drivers, balance: balance })
   }
 
-  onSubmit = async (event) => {
-  
+  onRideRequest = async (event) =>{
+
     event.preventDefault();
+    const accounts = this.state.accounts ;
+    this.setState({message : 'Waiting for ride request transaction to success ...'});
 
-    this.setState({ message: 'Waiting on transaction success...' })
+    await cab.methods.rideRequest(this.state.startLocation,this.state.endLocation).send({
+      from : accounts[0]
+    }) ;
 
-    const driver = await cab.methods.userrequest().send({
-      from: this.state.user,
-      value: web3.utils.toWei(this.state.value, 'ether'),
-    })
+    this.setState({message : 'You have succesfully created a ride request'});
 
-    this.setState({ message: 'Your transaction was successful', driver:  driver.from})
   }
 
-  render() {
-    return (
-      <div>
-        <h2>Book a cab</h2>
+  render() { 
 
-        <p>
-          This contract is managed by {this.state.user}
-          , {this.state.drivers.length} drivers bidding, 
-          minimum value: {web3.utils.fromWei(this.state.balance, 'ether')} ether!
-        </p>
+    
+    return (<div>
+      
+      <h1>Decent Cab Booking system </h1>
+      <h2>accounts : {this.state.accounts}</h2>
+      <h2>customer :  {this.state.customer}</h2>
+      <h2>status : {this.state.status} </h2> 
+      <h2>  {this.state.startLocation} - {this.state.endLocation} </h2>
+      <h2>Drive Requests count: {this.state.driverRequestsCount} </h2>
+      <ul>
+        {this.state.driverRequests.map(price => {
+          return <li> driver price : {price}</li>;
+        })}
+      </ul>
+      
+     
+      <hr/>
+      <form onSubmit = {this.onRideRequest}>
+        <h2>want to ride ?</h2>
+        <div>
+          <label>
+            starting point : 
+          </label>
+          <input
+            value = {this.state.startLocation } 
+            onChange = {event => this.setState({startLocation : event.target.value})}
+          />
+          <hr/>
+          <label>
+            destination point  :  
+          </label>
+          <input
+            value = {this.state.endLocation } 
+            onChange = {event => this.setState({endLocation : event.target.value})}
+          />
+          <hr/>
+        </div>
+        <button>Ride request</button>
+      </form>
 
-        <hr />
-
-        <ul>
-          {this.state.drivers.forEach((driver) =>
-            console.log(driver),
-          )}
-        </ul>
-        
-        <form onSubmit={this.onSubmit}>
-          <h4>Want to book a cab?</h4>
-          <div>
-            <input
-              value={this.state.value}
-              onChange={(event) => this.setState({ value: event.target.value })}
-            />
-          </div>
-          <button>Book</button>
-        </form>
-
-        <hr />
-        <h1>{this.state.message}</h1>
-        <h2>{this.state.driver}</h2>
-      </div>
-    )
+      <hr/>
+      <h2>{this.state.message}</h2>
+    </div>) ;
   }
 }
 export default App;
